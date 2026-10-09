@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 
 /// AI Orb: даврони равшании cyan/blue бо анимацияи "нафаскашӣ".
 class AiOrb extends StatefulWidget {
