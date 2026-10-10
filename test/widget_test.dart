@@ -10,8 +10,9 @@ void main() {
     expect(find.text('JARVIS AI'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Танзимот'));
-    await tester.pumpAndSettle();
-
+    
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.text('Танзимот'), findsOneWidget);
   });
 }
