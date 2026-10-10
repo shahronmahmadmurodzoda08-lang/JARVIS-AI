@@ -4,10 +4,14 @@ import 'package:jarvis_ai/ai/intent/local_intent_parser.dart';
 void main() {
   const parser = LocalIntentParser();
 
-  test('theme command is parsed', () {
+  test('theme command is parsed only with wake word', () {
     final call = parser.parse('JARVIS, theme-ро dark кун');
     expect(call?.name, 'changeTheme');
     expect(call?.args['mode'], 'dark');
+  });
+
+  test('command without wake word is not executed', () {
+    expect(parser.parse('theme dark кун'), isNull);
   });
 
   test('language command is parsed', () {
