@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+<key>NSMicrophoneUsageDescription</key>
+<string>JARVIS AI микрофонро барои шинохтани фармонҳои овозӣ истифода мебарад.</string>
+<key>NSSpeechRecognitionUsageDescription</key>
+<string>JARVIS AI сухани шуморо ба матн табдил медиҳад.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
