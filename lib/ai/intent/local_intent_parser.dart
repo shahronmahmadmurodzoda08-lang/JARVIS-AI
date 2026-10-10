@@ -1,17 +1,18 @@
 import 'package:jarvis_ai/ai/models/ai_models.dart';
 import 'package:jarvis_ai/features/settings/domain/app_settings.dart';
 
-/// Parseri mahalli (bo qoidaho, bedun internet).
-/// Faqat farmoni ravshan ro ToolCall mekunad; digar chiz = suhbat (null).
+/// Parser-и фармонҳои маҳаллӣ, ки бе интернет кор мекунад.
+/// Барои тағйир додани танзимот корбар бояд фармонро бо номи JARVIS оғоз кунад.
 class LocalIntentParser {
   const LocalIntentParser();
 
   static final RegExp _wakePrefix =
       RegExp(r'^\s*jarvis\b[\s,:!.]*', caseSensitive: false);
 
-  /// Feʼlhoi amal: bedun inho matn amal hisob nameshavad.
+  /// Фақат фармонҳои равшанро ба ToolCall табдил медиҳад.
   static final RegExp _verb = RegExp(
     r'(кун|гузор|иваз|set|change|switch|make|поставь|измени|сделай|переключи)',
+    caseSensitive: false,
   );
 
   static const Map<AppLanguage, List<String>> _languageWords = {
@@ -30,6 +31,9 @@ class LocalIntentParser {
   };
 
   ToolCall? parse(String input) {
+    // Бе wake word, матн сӯҳбат ҳисоб мешавад, на фармон.
+    if (!_wakePrefix.hasMatch(input)) return null;
+
     final text = input.toLowerCase().replaceFirst(_wakePrefix, '').trim();
     if (text.isEmpty || !_verb.hasMatch(text)) return null;
 
@@ -76,7 +80,6 @@ class LocalIntentParser {
 
   ToolCall? _voice(String text) {
     if (!_hasAny(text, ['овоз', 'voice', 'голос'])) return null;
-    // "female" "male"-ро дар бар мегирад, бинобар ин аввал female тафтиш мешавад.
     if (_hasAny(text, ['занона', 'female', 'женск'])) {
       return const ToolCall('changeVoice', {'voice': 'female'});
     }
