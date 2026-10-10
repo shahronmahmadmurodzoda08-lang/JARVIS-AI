@@ -1,6 +1,6 @@
-name: Setup all platforms
+name: Setup all platforms and app icons
 
-# Дастӣ оғоз мешавад: Actions -> Setup all platforms -> Run workflow
+# Бо пахш кардани Run workflow, папкаҳои платформаҳо ва нишонаҳо сохта мешаванд.
 on:
   workflow_dispatch:
 
@@ -10,63 +10,85 @@ permissions:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Generate platform folders
+      - name: Check logo files
+        shell: bash
         run: |
+          set -euo pipefail
+          test -f assets/icon/app_icon.png || { echo "Missing assets/icon/app_icon.png"; exit 1; }
+          test -f assets/icon/app_icon_foreground.png || { echo "Missing assets/icon/app_icon_foreground.png"; exit 1; }
+
+      - name: Generate platform folders
+        shell: bash
+        run: |
+          set -euo pipefail
           flutter create \
             --platforms=android,ios,windows,macos,linux,web \
             --project-name jarvis_ai \
             --org com.jarvis .
-          # Кодҳои шумо бармегарданд, агар flutter create онҳоро тағйир дода бошад.
+          # Файлҳои асосии лоиҳаро ба версияи Git бармегардонем.
           git checkout -- lib test pubspec.yaml analysis_options.yaml
 
-      - name: Generate app icons
+      - name: Generate launcher icons for all supported platforms
+        shell: bash
         run: |
+          set -euo pipefail
           flutter pub get
           dart run flutter_launcher_icons
 
-      - name: Set app name to JARVIS AI
+      - name: Set display name to JARVIS AI
+        shell: bash
         run: |
-          # Android
-          f=android/app/src/main/AndroidManifest.xml
-          [ -f "$f" ] && sed -i 's|android:label="[^"]*"|android:label="JARVIS AI"|' "$f"
+          set -euo pipefail
 
-          # iOS
-          f=ios/Runner/Info.plist
-          [ -f "$f" ] && perl -0pi -e 's|(<key>CFBundleDisplayName</key>\s*<string>)[^<]*|${1}JARVIS AI|' "$f"
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            sed -i 's|android:label="[^"]*"|android:label="JARVIS AI"|' android/app/src/main/AndroidManifest.xml
+          fi
 
-          # Windows
-          f=windows/runner/main.cpp
-          [ -f "$f" ] && sed -i 's|L"jarvis_ai"|L"JARVIS AI"|' "$f"
+          if [ -f ios/Runner/Info.plist ]; then
+            perl -0pi -e 's|(<key>CFBundleDisplayName</key>\s*<string>)[^<]*(</string>)|${1}JARVIS AI${2}|' ios/Runner/Info.plist
+          fi
 
-          # Linux
-          f=linux/runner/my_application.cc
-          [ -f "$f" ] && sed -i 's|"jarvis_ai"|"JARVIS AI"|g' "$f"
+          if [ -f macos/Runner/Configs/AppInfo.xcconfig ]; then
+            sed -i 's/^PRODUCT_NAME = .*/PRODUCT_NAME = JARVIS AI/' macos/Runner/Configs/AppInfo.xcconfig
+          fi
 
-          # Web
-          for f in web/index.html web/manifest.json; do
-            [ -f "$f" ] && sed -i 's|jarvis_ai|JARVIS AI|g' "$f"
-          done
-          true
+          if [ -f windows/runner/main.cpp ]; then
+            sed -i 's|L"jarvis_ai"|L"JARVIS AI"|g' windows/runner/main.cpp
+          fi
 
-      - name: Commit generated files
+          if [ -f linux/runner/my_application.cc ]; then
+            sed -i 's|"jarvis_ai"|"JARVIS AI"|g' linux/runner/my_application.cc
+          fi
+
+          if [ -f web/index.html ]; then
+            sed -i 's|<title>.*</title>|<title>JARVIS AI</title>|' web/index.html
+          fi
+
+          if [ -f web/manifest.json ]; then
+            /usr/bin/python3 -c 'import json; from pathlib import Path; p=Path("web/manifest.json"); d=json.loads(p.read_text()); d["name"]="JARVIS AI"; d["short_name"]="JARVIS AI"; p.write_text(json.dumps(d, ensure_ascii=False, indent=2)+"\n")'
+          fi
+
+      - name: Commit generated platform files and icons
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
-            echo "Ҳеҷ тағйирот нест."
+            echo "No platform or icon changes to commit."
           else
-            git commit -m "chore: generate platform folders, icons and app name"
+            git commit -m "chore: generate platform folders and JARVIS AI icons"
             git push
           fi
