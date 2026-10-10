@@ -2,9 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/app_settings.dart';
 
-/// Танзимоти JARVIS. Номи методҳо ба "Settings Tools"-и оянда мувофиқ аст
-/// (changeVoice, changeLanguage, changeSpeechSpeed, changeTheme, changeWakeWordSettings).
-/// Ҳоло танҳо дар хотира; нигоҳдории доимӣ баъдтар илова мешавад.
+/// Танзимоти JARVIS. Ҳоло ҳолат дар хотираи барнома нигоҳ дошта мешавад.
 class SettingsController extends Notifier<AppSettings> {
   @override
   AppSettings build() => const AppSettings();
@@ -18,7 +16,8 @@ class SettingsController extends Notifier<AppSettings> {
   }
 
   void changeSpeechSpeed(double speed) {
-    state = state.copyWith(speechSpeed: speed.clamp(0.5, 1.5));
+    // clamp() намуди num медиҳад; toDouble() типи double-ро нигоҳ медорад.
+    state = state.copyWith(speechSpeed: speed.clamp(0.5, 1.5).toDouble());
   }
 
   void changeTheme(ThemeModeSetting mode) {
