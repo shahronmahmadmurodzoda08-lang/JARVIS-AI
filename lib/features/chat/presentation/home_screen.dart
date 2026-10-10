@@ -6,7 +6,6 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../application/chat_controller.dart';
 import '../domain/chat_message.dart';
-import 'widgets/ai_orb.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -54,8 +53,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Column(
           children: [
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: AiOrb(size: 140),
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Image(
+                image: AssetImage('assets/icon/app_icon.png'),
+                width: 156,
+                height: 156,
+                fit: BoxFit.contain,
+                semanticLabel: 'JARVIS AI logo',
+              ),
             ),
             Expanded(
               child: ListView.builder(
