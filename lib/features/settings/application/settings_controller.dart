@@ -1,42 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jarvis_ai/features/settings/application/settings_controller.dart';
-import 'package:jarvis_ai/features/settings/domain/app_settings.dart';
 
-/// Rohi yagonai tools baroi taghiri tanzimot (AI Core ba UI vobasta nest).
-abstract interface class SettingsGateway {
-  AppSettings get current;
+import '../domain/app_settings.dart';
 
-  void changeVoice(VoiceType voice);
-  void changeLanguage(AppLanguage language);
-  void changeSpeechSpeed(double speed);
-  void changeTheme(ThemeModeSetting mode);
+/// Танзимоти JARVIS. Номи методҳо ба "Settings Tools"-и оянда мувофиқ аст
+/// (changeVoice, changeLanguage, changeSpeechSpeed, changeTheme, changeWakeWordSettings).
+/// Ҳоло танҳо дар хотира; нигоҳдории доимӣ баъдтар илова мешавад.
+class SettingsController extends Notifier<AppSettings> {
+  @override
+  AppSettings build() => const AppSettings();
+
+  void changeVoice(VoiceType voice) {
+    state = state.copyWith(voice: voice);
+  }
+
+  void changeLanguage(AppLanguage language) {
+    state = state.copyWith(language: language);
+  }
+
+  void changeSpeechSpeed(double speed) {
+    state = state.copyWith(speechSpeed: speed.clamp(0.5, 1.5));
+  }
+
+  void changeTheme(ThemeModeSetting mode) {
+    state = state.copyWith(themeMode: mode);
+  }
+
+  void changeWakeWordSettings({required bool enabled}) {
+    state = state.copyWith(wakeWordEnabled: enabled);
+  }
 }
 
-class RiverpodSettingsGateway implements SettingsGateway {
-  RiverpodSettingsGateway(this._ref);
-
-  final Ref _ref;
-
-  @override
-  AppSettings get current => _ref.read(settingsProvider);
-
-  @override
-  void changeVoice(VoiceType voice) =>
-      _ref.read(settingsProvider.notifier).changeVoice(voice);
-
-  @override
-  void changeLanguage(AppLanguage language) =>
-      _ref.read(settingsProvider.notifier).changeLanguage(language);
-
-  @override
-  void changeSpeechSpeed(double speed) =>
-      _ref.read(settingsProvider.notifier).changeSpeechSpeed(speed);
-
-  @override
-  void changeTheme(ThemeModeSetting mode) =>
-      _ref.read(settingsProvider.notifier).changeTheme(mode);
-}
-
-final settingsGatewayProvider = Provider<SettingsGateway>(
-  (ref) => RiverpodSettingsGateway(ref),
-);
+final settingsProvider =
+    NotifierProvider<SettingsController, AppSettings>(SettingsController.new);
