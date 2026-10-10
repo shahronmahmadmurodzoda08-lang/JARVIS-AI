@@ -10,7 +10,7 @@ permissions:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +30,35 @@ jobs:
           # Кодҳои шумо бармегарданд, агар flutter create онҳоро тағйир дода бошад.
           git checkout -- lib test pubspec.yaml analysis_options.yaml
 
+      - name: Generate app icons
+        run: |
+          flutter pub get
+          dart run flutter_launcher_icons
+
+      - name: Set app name to JARVIS AI
+        run: |
+          # Android
+          f=android/app/src/main/AndroidManifest.xml
+          [ -f "$f" ] && sed -i 's|android:label="[^"]*"|android:label="JARVIS AI"|' "$f"
+
+          # iOS
+          f=ios/Runner/Info.plist
+          [ -f "$f" ] && perl -0pi -e 's|(<key>CFBundleDisplayName</key>\s*<string>)[^<]*|${1}JARVIS AI|' "$f"
+
+          # Windows
+          f=windows/runner/main.cpp
+          [ -f "$f" ] && sed -i 's|L"jarvis_ai"|L"JARVIS AI"|' "$f"
+
+          # Linux
+          f=linux/runner/my_application.cc
+          [ -f "$f" ] && sed -i 's|"jarvis_ai"|"JARVIS AI"|g' "$f"
+
+          # Web
+          for f in web/index.html web/manifest.json; do
+            [ -f "$f" ] && sed -i 's|jarvis_ai|JARVIS AI|g' "$f"
+          done
+          true
+
       - name: Commit generated files
         run: |
           git config user.name "github-actions[bot]"
@@ -38,6 +67,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Ҳеҷ тағйирот нест."
           else
-            git commit -m "chore: generate platform folders"
+            git commit -m "chore: generate platform folders, icons and app name"
             git push
           fi
