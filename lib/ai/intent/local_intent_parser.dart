@@ -2,7 +2,7 @@ import 'package:jarvis_ai/ai/models/ai_models.dart';
 import 'package:jarvis_ai/features/settings/domain/app_settings.dart';
 
 /// Parser-и фармонҳои маҳаллӣ, ки бе интернет кор мекунад.
-/// Барои тағйир додани танзимот корбар бояд фармонро бо номи JARVIS оғоз кунад.
+/// Барои иҷрои ҳар амал корбар бояд фармонро бо номи JARVIS оғоз кунад.
 class LocalIntentParser {
   const LocalIntentParser();
 
@@ -11,9 +11,11 @@ class LocalIntentParser {
 
   /// Фақат фармонҳои равшанро ба ToolCall табдил медиҳад.
   static final RegExp _verb = RegExp(
-    r'(кун|гузор|иваз|set|change|switch|make|поставь|измени|сделай|переключи)',
+    r'(кун|гузор|иваз|кушо|нишон|деҳ|бигӯ|санҷ|set|change|switch|make|show|open|tell|check|поставь|измени|сделай|переключи|открой|покажи|скажи|проверь)',
     caseSensitive: false,
   );
+
+  static final RegExp _number = RegExp(r'\d{1,3}');
 
   static const Map<AppLanguage, List<String>> _languageWords = {
     AppLanguage.tajik: ['тоҷикӣ', 'тоҷики', 'таджик', 'tajik'],
@@ -37,7 +39,15 @@ class LocalIntentParser {
     final text = input.toLowerCase().replaceFirst(_wakePrefix, '').trim();
     if (text.isEmpty || !_verb.hasMatch(text)) return null;
 
-    return _theme(text) ?? _language(text) ?? _speed(text) ?? _voice(text);
+    return _theme(text) ??
+        _language(text) ??
+        _speed(text) ??
+        _voice(text) ??
+        _volume(text) ??
+        _battery(text) ??
+        _network(text) ??
+        _settingsScreen(text) ??
+        _deviceInfo(text);
   }
 
   bool _hasAny(String text, List<String> words) =>
@@ -87,5 +97,62 @@ class LocalIntentParser {
       return const ToolCall('changeVoice', {'voice': 'male'});
     }
     return null;
+  }
+
+  /// "садоро 50 фоиз кун" -> setVolume; "садо чанд аст, бигӯ" -> getVolume.
+  ToolCall? _volume(String text) {
+    if (!_hasAny(text, ['садо', 'volume', 'громкост', 'звук'])) return null;
+
+    final number = _number.firstMatch(text);
+    if (number != null) {
+      final percent = int.parse(number.group(0)!).clamp(0, 100).toInt();
+      return ToolCall('setVolume', {'percent': percent});
+    }
+    if (_hasAny(text, ['чанд', 'нишон', 'бигӯ', 'show', 'tell', 'скажи', 'покажи'])) {
+      return const ToolCall('getVolume');
+    }
+    return null;
+  }
+
+  ToolCall? _battery(String text) {
+    if (!_hasAny(text, ['батаре', 'заряд', 'battery', 'аккумулятор'])) {
+      return null;
+    }
+    return const ToolCall('getBatteryStatus');
+  }
+
+  ToolCall? _network(String text) {
+    if (!_hasAny(text, ['интернет', 'internet', 'network', 'сеть', 'wifi', 'wi-fi', 'вай-фай'])) {
+      return null;
+    }
+    return const ToolCall('getNetworkStatus');
+  }
+
+  ToolCall? _settingsScreen(String text) {
+    if (_hasAny(text, [
+      'танзимоти барнома',
+      'настройки приложения',
+      'app settings',
+      'application settings',
+    ])) {
+      return const ToolCall('openApplicationSettings');
+    }
+    if (_hasAny(text, [
+      'танзимоти телефон',
+      'танзимоти система',
+      'настройки телефона',
+      'настройки системы',
+      'phone settings',
+      'system settings',
+      'android settings',
+    ])) {
+      return const ToolCall('openSystemSettings');
+    }
+    return null;
+  }
+
+  ToolCall? _deviceInfo(String text) {
+    if (!_hasAny(text, ['дастгоҳ', 'device', 'устройств'])) return null;
+    return const ToolCall('getDeviceInfo');
   }
 }
