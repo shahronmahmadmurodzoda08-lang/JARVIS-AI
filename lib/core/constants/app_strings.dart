@@ -12,6 +12,10 @@ abstract final class AppStrings {
   static const String actionFailed = 'Ин амалро иҷро карда натавонистам.';
   static const String blockedRequest = 'Ман ин дархостро иҷро карда наметавонам.';
   static const String permissionMissing = 'Барои ин амал иҷозат лозим аст.';
+  static const String androidOnly =
+      'Ин амал танҳо дар телефони Android кор мекунад.';
+  static const String systemSettingsOpened = 'Танзимоти телефон кушода шуд.';
+  static const String appSettingsOpened = 'Танзимоти барнома кушода шуд.';
   static const String voice = 'Овоз';
   static const String voiceMale = 'Мардона';
   static const String voiceFemale = 'Занона';
